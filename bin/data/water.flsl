@@ -1,0 +1,10 @@
+use namespace flare;
+
+technique main
+{
+	// vs
+	output vertex = position.xyzw * worldViewProj;
+	
+	// fs
+	output fragment = 1;
+}
