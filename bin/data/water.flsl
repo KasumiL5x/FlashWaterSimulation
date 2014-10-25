@@ -10,7 +10,8 @@ technique main
 {
 	//// BEGIN VERTEX SHADER	////
 	float4 pos = position.xyzw;
-	pos.y = color0.x * WaveScale;
+	pos.y += color0.y;
+	//pos.y = color0.y * WaveScale;
 	interpolated float3 interpPos = pos.xyz;
 	output vertex = pos.xyzw * worldViewProj;
 	//// END VERTEX SHADER	////

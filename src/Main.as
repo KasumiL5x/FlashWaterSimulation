@@ -8,6 +8,7 @@ package
 	import flare.primitives.*;
 	import flash.display.*;
 	import flash.events.Event;
+	import flash.geom.Vector3D;
 	
 	public class Main extends Sprite
 	{
@@ -17,7 +18,7 @@ package
 		
 		public function Main():void
 		{
-			_scene = new Viewer3D(this);
+			_scene = new Viewer3D(this, "", 0.2);
 			_scene.autoResize = true;
 			_scene.camera.setPosition(120, 40, -30);
 			_scene.camera.lookAt(0, 0, 0);

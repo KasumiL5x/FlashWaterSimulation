@@ -7,11 +7,31 @@ kernel water_update
 	version: 1;
 >
 {
-	input image4 source;
+	input image3 source;
+	input image3 previous;
 	output pixel3 destination;
 
 	void evaluatePixel()
 	{
-		destination = sampleNearest(source, outCoord()).rgb;
+		float2 coord = outCoord();
+		
+		float2 dx = float2(1.0, 0.0);
+		float2 dy = float2(0.0, 1.0);
+		float3 left  = sampleNearest(source, coord - dx);
+		float3 right = sampleNearest(source, coord + dx);
+		float3 up    = sampleNearest(source, coord - dy);
+		float3 down  = sampleNearest(source, coord + dy);
+
+		float3 curr = sampleNearest(source, coord).xyz;
+		float3 prev = sampleNearest(previous, coord);
+
+		destination = -0.05 * (curr - prev) +
+									2.0 * curr - prev +
+									0.4 * (right - 2.0 * curr + left) +
+									0.4 * (down - 2.0 * curr + up);
+
+		//destination = float3(0, 0, 0);
+
+		//destination = sampleNearest(source, outCoord()).rgb;
 	}
 }
