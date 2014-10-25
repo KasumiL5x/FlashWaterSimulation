@@ -1,10 +1,37 @@
 use namespace flare;
 
+samplerCube CubeTex;
+sampler2D NormalTex;
+param float WaveScale;
+param float4 BaseColor;
+param float Ambient;
+
 technique main
 {
-	// vs
-	output vertex = position.xyzw * worldViewProj;
+	//// BEGIN VERTEX SHADER	////
+	float4 pos = position.xyzw;
+	pos.y = color0.x * WaveScale;
+	interpolated float3 interpPos = pos.xyz;
+	output vertex = pos.xyzw * worldViewProj;
+	//// END VERTEX SHADER	////
 	
-	// fs
-	output fragment = 1;
+	//// BEGIN FRAGMENT SHADER	////
+	param CAM_POS camPos;
+	param TIME time;
+	float3 V = interpPos - camPos;
+	float3 N = normalize(float3(0.0, 1.0, 0.0));
+	// Displace normal over time.
+	N += sampler2D(NormalTex, iUV0 * 30.0 + time.wz * 0.05).xyz - 0.5;
+	N += sampler2D(NormalTex, iUV0 * 30.0 - time.zw * 0.1).xyz - 0.5;
+	N = normalize(N);
+	// Cubemap reflection.
+	float4 reflection = samplerCube(CubeTex, reflect(V, N));
+	// Wave color.
+	float4 wave_color = interpolate(float4(pow(color0.xxx, 4), 1));
+	// Final color.
+	float4 color = ((BaseColor * Ambient) + (wave_color * BaseColor) + reflection) ;//* (1 - length(iUV0 - 0.5) * 2.0);
+	output fragment = color;
+	output sourceFactor = "one";
+	output destFactor = "oneMinusSourceAlpha";
+	//// END FRAGMENT SHADER	////
 }

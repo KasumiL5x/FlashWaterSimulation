@@ -1,0 +1,17 @@
+<languageVersion: 1.0;>
+
+kernel water_update
+<
+	namespace: "dgreen";
+	vendor: "dgreen";
+	version: 1;
+>
+{
+	input image4 source;
+	output pixel3 destination;
+
+	void evaluatePixel()
+	{
+		destination = sampleNearest(source, outCoord()).rgb;
+	}
+}
