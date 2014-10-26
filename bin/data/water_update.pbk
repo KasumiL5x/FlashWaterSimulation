@@ -22,7 +22,7 @@ kernel water_update
 		float avg = (left + right + up + down) * 0.25;
 		destination = sampleNearest(source, coord).xyzw;
 		destination.y += (avg - destination.x) * 1.0;
-		destination.y *= 0.995;
+		destination.y *= 0.95;//0.995;
 		destination.x += destination.y;
 	}
 }
