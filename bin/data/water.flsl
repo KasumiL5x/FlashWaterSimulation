@@ -1,4 +1,6 @@
 use namespace flare;
+use namespace flare.transforms;
+use namespace flare.filters;
 
 samplerCube CubeTex;
 sampler2D NormalTex;
@@ -6,33 +8,57 @@ param float WaveScale;
 param float4 BaseColor;
 param float Ambient;
 
+input POSITION position;
+input NORMAL normal;
+
+param CAM_POS cam_pos;
+param TIME time;
+
+interpolated float3 interp_pos;
+interpolated float color_r;
+interpolated float color_g;
+interpolated float color_b;
+interpolated float color_a;
+
+float4 vertexShader()
+{
+	float4 pos = position.xyzw;
+	pos.y += color0.x;
+	interp_pos = pos.xyz;
+	color_r = color0.r;
+	color_g = color0.g;
+	color_b = color0.b;
+	color_a = color0.a;
+	return pos.xyzw * worldViewProj;
+}
+
+float4 fragmentShader()
+{
+	float3 V = interp_pos - cam_pos;
+	
+	float3 N = float3(0.0, 1.0, 0.0);
+	N = float3(color_b, sqrt(1.0 - dot(float2(color_b, color_a), float2(color_b, color_a))), color_a);
+	//N = float3(0.0, color_b, 0.0);
+	//N += sampler2D(NormalTex, iUV0 * 30.0 + time.wz * 0.05).xyz - 0.5;
+	//N += sampler2D(NormalTex, iUV0 * 30.0 - time.zw * 0.1).xyz - 0.5;
+	N = normalize(N);
+	
+	float3 L = normalize(float3(0.0, 0.8, -0.4));
+	float dp = max(dot(L, N), 0.0);
+	
+	float4 cube_reflect = samplerCube(CubeTex, reflect(V, N));
+	
+	float4 wave_color = interpolate(float4(pow(float3(0.1), 4.0), 1.0));
+	//float4 wave_color = interpolate(float4(pow(iUV0.xxx, 4), 1));
+	
+	float4 color = ((BaseColor * Ambient) + (wave_color * BaseColor) + cube_reflect) * dp; // * (1 - length(iUV0 - 0.5) * 2.0);
+	return color;
+}
+
 technique main
 {
-	//// BEGIN VERTEX SHADER	////
-	float4 pos = position.xyzw;
-	pos.y += color0.y;
-	//pos.y = color0.y * WaveScale;
-	interpolated float3 interpPos = pos.xyz;
-	output vertex = pos.xyzw * worldViewProj;
-	//// END VERTEX SHADER	////
-	
-	//// BEGIN FRAGMENT SHADER	////
-	param CAM_POS camPos;
-	param TIME time;
-	float3 V = interpPos - camPos;
-	float3 N = normalize(float3(0.0, 1.0, 0.0));
-	// Displace normal over time.
-	N += sampler2D(NormalTex, iUV0 * 30.0 + time.wz * 0.05).xyz - 0.5;
-	N += sampler2D(NormalTex, iUV0 * 30.0 - time.zw * 0.1).xyz - 0.5;
-	N = normalize(N);
-	// Cubemap reflection.
-	float4 reflection = samplerCube(CubeTex, reflect(V, N));
-	// Wave color.
-	float4 wave_color = interpolate(float4(pow(color0.xxx, 4), 1));
-	// Final color.
-	float4 color = ((BaseColor * Ambient) + (wave_color * BaseColor) + reflection) ;//* (1 - length(iUV0 - 0.5) * 2.0);
-	output fragment = color;
+	output vertex = vertexShader();
+	output fragment = fragmentShader();
 	output sourceFactor = "one";
 	output destFactor = "oneMinusSourceAlpha";
-	//// END FRAGMENT SHADER	////
 }

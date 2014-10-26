@@ -26,7 +26,7 @@ package
 			_skybox = new SkyBox("data/sky.png", SkyBox.HORIZONTAL_CROSS, null, 1.0);
 			_scene.addChild(_skybox);
 			
-			_water = new Water(_scene, 64, 150);
+			_water = new Water(_scene, 128, 150);
 			_scene.addChild(_water.WaterPlane);
 			
 			_scene.addEventListener(Scene3D.UPDATE_EVENT, onUpdate);
