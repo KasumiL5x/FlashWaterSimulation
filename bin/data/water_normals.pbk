@@ -17,9 +17,9 @@ kernel water_normals
 		
 		float2 coord = outCoord();
 		destination = sampleNearest(source, coord).xyzw;
-		float delta = 1.0;// / (128.0);
-		float3 n_dx = normalize(float3(delta, sampleNearest(source, float2(coord.x + delta, coord.y)).x - destination.x, 0.0));
-		float3 n_dy = normalize(float3(0.0, sampleNearest(source, float2(coord.x, coord.y + delta)).x - destination.x, delta));
+		float2 delta = pixelSize(source);
+		float3 n_dx = normalize(float3(delta.x, sampleNearest(source, float2(coord.x + delta.x, coord.y)).x - destination.x, 0.0));
+		float3 n_dy = normalize(float3(0.0, sampleNearest(source, float2(coord.x, coord.y + delta.y)).x - destination.x, delta.y));
 		float3 normal = normalize(cross(n_dy, n_dx));
 		destination.z = normal.x;
 		destination.w = normal.z;

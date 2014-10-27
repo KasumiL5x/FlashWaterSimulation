@@ -1,0 +1,53 @@
+<languageVersion: 1.0;>
+
+kernel water_update
+<
+	namespace: "dgreen";
+	vendor: "dgreen";
+	version: 1;
+>
+{
+	parameter float2 GridSize
+	<
+		defaultValue: float2(0.0, 0.0);
+		description: "The size of the grid used when normalizing the coordinate.";
+	>;
+	parameter float Radius
+	<
+		minValue: 0.0;
+		defaultValue: 0.0;
+		description: "The radius of the drop -- very sensitive.";
+	>;
+	parameter float Strength
+	<
+		minValue: 0.0;
+		defaultValue: 1.0;
+		description: "Modulating strength of the drop.";
+	>;
+	parameter float2 Center
+	<
+		minValue: float2(0.0 ,0.0);
+		defaultValue: float2(0.0, 0.0);
+		description: "Normalized coordinate of the drop.";
+	>;
+	
+	input image4 source;
+	output pixel4 destination;
+
+	void evaluatePixel()
+	{
+		// Sample the output as to preserve the values we don't want to change.
+		float2 coord = outCoord();
+		destination = sampleNearest(source, coord).xyzw;
+		
+		// Normalize the coordinate into a 0..1 space.
+		coord = coord / GridSize;
+		
+		// Compute a falloff based on a radius.
+		float drop = max(0.0, 1.0 - length(Center - coord) / Radius);
+		// Fudge!
+		drop = 0.5 - cos(drop * 3.141592653589793) * 0.5;
+		// Drop the basssssssss.
+		destination.x += drop * Strength;
+	}
+}

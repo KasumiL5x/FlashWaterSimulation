@@ -13,16 +13,16 @@ kernel water_update
 	void evaluatePixel()
 	{
 		float2 coord = outCoord();
-		float2 dx = float2(1.0, 0.0);
-		float2 dy = float2(0.0, 1.0);
+		float2 dx = float2(pixelSize(source).x, 0.0);
+		float2 dy = float2(0.0, pixelSize(source).y);
 		float left  = sampleNearest(source, coord - dx).r;
 		float right = sampleNearest(source, coord + dx).r;
 		float up    = sampleNearest(source, coord - dy).r;
 		float down  = sampleNearest(source, coord + dy).r;
 		float avg = (left + right + up + down) * 0.25;
 		destination = sampleNearest(source, coord).xyzw;
-		destination.y += (avg - destination.x) * 1.0;
-		destination.y *= 0.95;//0.995;
+		destination.y += (avg - destination.x) * 2.0;
+		destination.y *= 0.985;//0.995;
 		destination.x += destination.y;
 	}
 }

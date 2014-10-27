@@ -1,11 +1,12 @@
 use namespace flare;
 use namespace flare.transforms;
 use namespace flare.filters;
+use namespace flare.blendMode;
 
 samplerCube CubeTex;
-sampler2D NormalTex;
-param float WaveScale;
-param float4 BaseColor;
+//sampler2D NormalTex;
+sampler2D FoamTex;
+param float3 BaseColor;
 param float Ambient;
 
 input POSITION position;
@@ -37,22 +38,41 @@ float4 fragmentShader()
 	float3 V = interp_pos - cam_pos;
 	
 	float3 N = float3(0.0, 1.0, 0.0);
-	N = float3(color_b, sqrt(1.0 - dot(float2(color_b, color_a), float2(color_b, color_a))), color_a);
-	//N = float3(0.0, color_b, 0.0);
-	//N += sampler2D(NormalTex, iUV0 * 30.0 + time.wz * 0.05).xyz - 0.5;
-	//N += sampler2D(NormalTex, iUV0 * 30.0 - time.zw * 0.1).xyz - 0.5;
+	N = 2.0 * float3(color_b, sqrt(1.0 - dot(float2(color_b, color_a), float2(color_b, color_a))), color_a) - 1.0;
+	//N += sampler2D(NormalTex, iUV0 * 20.0 + time.wz * 0.1).xyz - 0.5;
+	//N += sampler2D(NormalTex, iUV0 * 20.0 - time.zw * 0.1).xyz - 0.5;
 	N = normalize(N);
 	
+	// Simple lighting.
 	float3 L = normalize(float3(0.0, 0.8, -0.4));
 	float dp = max(dot(L, N), 0.0);
 	
-	float4 cube_reflect = samplerCube(CubeTex, reflect(V, N));
+	// Reflection vector.
+	float3 RV = normalize(reflect(V, N));
 	
-	float4 wave_color = interpolate(float4(pow(float3(0.1), 4.0), 1.0));
-	//float4 wave_color = interpolate(float4(pow(iUV0.xxx, 4), 1));
+	float4 cube_reflect = samplerCube(CubeTex, RV);
 	
-	float4 color = ((BaseColor * Ambient) + (wave_color * BaseColor) + cube_reflect) * dp; // * (1 - length(iUV0 - 0.5) * 2.0);
-	return color;
+	// Sunlight computation.
+	float SUN_STRENGTH = 10.0;
+	float SUN_SHINE = 10.0;
+	float3 Sunlight = pow(SUN_STRENGTH * pow(max(0.0, dot(RV, L)), SUN_SHINE) * float3(1.2, 0.4, 0.1), 1 / 1.2); // 0.454545r
+	
+	float3 wave_color = min(BaseColor * 0.60, pow(float3(color_r), 4));
+	
+	float MIN_H = 3.0;
+	float MAX_H = 5.1;
+	float3 foam_color = sampler2D(FoamTex, iUV0 * time.xw).xyz;
+	float3 foam = foam_color * max(0.0, (color_r - MIN_H) / (MAX_H - MIN_H));
+	
+	float3 color = float3(0.0);
+	color = mix(float4(cube_reflect.xyz + Sunlight, 1.0), float4(0.0), dp).xyz;
+	color = mix(float4(BaseColor, 1.0), float4(color, 1.0), dp).xyz;
+	color = mix(float4(color, 1.0), float4(foam, 1.0), dp).xyz;
+	color = mix(float4(color, 1.0), float4(wave_color, 1.0), dp).xyz;
+	color += Ambient * BaseColor;
+	
+	//color *= (1 - length(iUV0 - 0.5) * 2.0); // Fog
+	return float4(color, 1.0);
 }
 
 technique main
@@ -60,5 +80,5 @@ technique main
 	output vertex = vertexShader();
 	output fragment = fragmentShader();
 	output sourceFactor = "one";
-	output destFactor = "oneMinusSourceAlpha";
+	//output destFactor = "oneMinusSourceAlpha";
 }

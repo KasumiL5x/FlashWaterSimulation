@@ -19,7 +19,9 @@ package
 	import flash.display.Shader;
 	import flash.display.ShaderJob;
 	import flash.display3D.textures.Texture;
+	import flash.events.ShaderEvent;
 	import flash.geom.Point;
+	import flash.geom.Vector3D;
 	import flash.utils.ByteArray;
 	import flash.utils.Endian;
 	import flash.utils.getTimer;
@@ -34,8 +36,6 @@ package
 		// -*- Simulation properties -*-
 		private var _gridSize:uint; /**< Simulation grid size. */
 		private var _waterSurface:Surface3D; /**< Surface information that will be uploaded to the plane. */
-		//private var _vertexData:Vector.<Vector.<Number>>;
-		//private var _currBuffer:uint = 1;
 		private var _vertexData:Vector.<Number>;
 		[Embed(source = "/../bin/data/water_update.pbj", mimeType = "application/octet-stream")]
 		private var UpdateShader:Class;
@@ -43,6 +43,9 @@ package
 		[Embed(source = "/../bin/data/water_normals.pbj", mimeType = "application/octet-stream")]
 		private var NormalsShader:Class;
 		private var _normalsShader:Shader;
+		[Embed(source = "/../bin/data/water_drop.pbj", mimeType = "application/octet-stream")]
+		private var DropShader:Class;
+		private var _dropShader:Shader;
 		
 		// -*- Materials -*-
 		[Embed(source = "/../bin/data/water.flsl.compiled", mimeType = "application/octet-stream")]
@@ -62,9 +65,10 @@ package
 			initShaders();
 			initRenderables();
 			initSimulation();
-			swapBuffers();
+			updateShaderConstants();
 			
-			displace(0.5, 0.5, 50);
+			//displaceRadius01(0.99, 0.99, 2.0, 50);
+			//displaceRadius(0.5, 0.5, 10.0, 10.0);
 		}
 		
 		public function get WaterPlane():Plane
@@ -75,15 +79,13 @@ package
 		private function initShaders():void
 		{
 			_shader = new FLSLMaterial("water_shader", new _shaderClass() as ByteArray);
-			_shader.params.CubeTex.value = new Texture3D("data/highlights.png", false, Texture3D.FORMAT_RGBA, Texture3D.TYPE_CUBE);
-			_shader.params.NormalTex.value = new Texture3D("data/normalMap.jpg");
+			_shader.params.CubeTex.value = new Texture3D("data/cubemap.png", false, Texture3D.FORMAT_RGBA, Texture3D.TYPE_CUBE);
+			//_shader.params.NormalTex.value = new Texture3D("data/normals.png");
+			_shader.params.FoamTex.value = new Texture3D("data/foam.png");
 			//
-			//_shader.params.WaveScale.value[0] = 3.0;
-			//
-			_shader.params.BaseColor.value[0] = 0.39;
-			_shader.params.BaseColor.value[1] = 0.58;
-			_shader.params.BaseColor.value[2] = 0.93;
-			_shader.params.BaseColor.value[3] = 1.0;
+			//_shader.params.BaseColor.value[0] = 0.39; _shader.params.BaseColor.value[1] = 0.58; _shader.params.BaseColor.value[2] = 0.93; // Cornflower blue
+			_shader.params.BaseColor.value[0] = 0.21; _shader.params.BaseColor.value[1] = 0.32; _shader.params.BaseColor.value[2] = 0.55; // Sea blue
+			//_shader.params.BaseColor.value[0] = 0.03; _shader.params.BaseColor.value[1] = 0.52; _shader.params.BaseColor.value[2] = 0.74; // Coolwater blue
 			//
 			_shader.params.Ambient.value[0] = 0.2;
 		}
@@ -95,24 +97,12 @@ package
 		
 		private function initSimulation():void
 		{
-			//_vertexData = new Vector.<Vector.<Number>>();
 			_vertexData = new Vector.<Number>();
-			//_vertexData[0] = new Vector.<Number>();
-			//_vertexData[1] = new Vector.<Number>();
-			//_vertexData[0].endian = Endian.LITTLE_ENDIAN;
-			//_vertexData[1].endian = Endian.LITTLE_ENDIAN;
-			//_vertexData[0].length = _gridSize * _gridSize * 12;
-			//_vertexData[1].length = _gridSize * _gridSize * 12;
 			for ( var y:uint = 0; y < _gridSize; ++y )
 			{
 				for ( var x:uint = 0; x < _gridSize; ++x )
 				{
-					//_vertexData[0].push(0.0, 0.0, 0.0, 0.0);
-					//_vertexData[1].push(0.0, 0.0, 0.0, 0.0);
 					_vertexData.push(0.0, 0.0, 0.0, 0.0);
-					//var idx:uint = y * _gridSize + x;
-					//_vertexData[0][(3 * idx + 1) * 4] = 300.0;
-					//_vertexData[1][(3 * idx + 1) * 4] = 300.0;
 				}
 			}
 			
@@ -120,10 +110,10 @@ package
 			
 			_normalsShader = new Shader(new NormalsShader() as ByteArray);
 			
+			_dropShader = new Shader(new DropShader() as ByteArray);
+			
 			_waterSurface = new Surface3D("water_surface");
 			_waterSurface.addVertexData(Surface3D.COLOR0, 4);
-			//_waterSurface.vertexBytes = _vertexData[1 - _currBuffer];
-			//_waterSurface.vertexVector = _vertexData[1 - _currBuffer];
 			_waterSurface.vertexVector = _vertexData;
 			_waterSurface.upload(_scene);
 			
@@ -132,14 +122,12 @@ package
 		
 		private function runUpdateShader():void
 		{
-			//var job:ShaderJob = new ShaderJob(_updateShader, _vertexData[1 - _currBuffer], _gridSize, _gridSize);
 			var job:ShaderJob = new ShaderJob(_updateShader, _vertexData, _gridSize, _gridSize);
 			job.start(true);
 		}
 		
 		private function runNormalsShader():void
 		{
-			//var job:ShaderJob = new ShaderJob(_normalsShader, _vertexData[1 - _currBuffer], _gridSize, _gridSize);
 			var job:ShaderJob = new ShaderJob(_normalsShader, _vertexData, _gridSize, _gridSize);
 			job.start(true);
 		}
@@ -148,50 +136,46 @@ package
 		{
 			if ( _waterSurface.vertexBuffer )
 			{
-				//_waterSurface.vertexBytes = _vertexData[1 - _currBuffer];
-				//_waterSurface.vertexVector = _vertexData[1 - _currBuffer];
 				_waterSurface.vertexVector = _vertexData;
-				//_waterSurface.vertexBuffer.uploadFromVector(_vertexData[1 - _currBuffer], 0, _gridSize*_gridSize);
 				_waterSurface.vertexBuffer.uploadFromVector(_vertexData, 0, _gridSize*_gridSize);
-				//_waterSurface.vertexBuffer.uploadFromByteArray(_vertexData[1 - _currBuffer], 0, 0, _gridSize * _gridSize);
 			}
 		}
 		
-		private function swapBuffers():void
+		private function updateShaderConstants():void
 		{
-			//_currBuffer = 1 - _currBuffer;
-			
-			//_updateShader.data.source.input = _vertexData[_currBuffer];
 			_updateShader.data.source.input = _vertexData;
 			_updateShader.data.source.width = _gridSize;
 			_updateShader.data.source.height = _gridSize;
-			//_updateShader.data.previous.input = _vertexData[1 - _currBuffer];
-			//_updateShader.data.previous.width = _gridSize;
-			//_updateShader.data.previous.height = _gridSize;
 			
-			//_normalsShader.data.source.input = _vertexData[_currBuffer];
 			_normalsShader.data.source.input = _vertexData;
 			_normalsShader.data.source.width = _gridSize;
 			_normalsShader.data.source.height = _gridSize;
+			
+			_dropShader.data.source.input = _vertexData;
+			_dropShader.data.source.width = _gridSize;
+			_dropShader.data.source.height = _gridSize;
 		}
 		
 		public function update():void
 		{
-			//displace(0.5, 0.5, 10);
 			runUpdateShader();
 			runNormalsShader();
 			updateBuffers();
-			swapBuffers();
 		}
 		
-		public function displace( x:Number, y:Number, val:Number ):void
+		public function displacePoint01( x:Number, y:Number, radius:Number=0.03, strength:Number=0.01 ):void
 		{
-			var x_coord:uint = Math.floor(x * _gridSize);
-			var y_coord:uint = Math.floor(y * _gridSize);
-			var idx:int = _gridSize * y_coord + x_coord;
-			_vertexData[4 * idx + 1] += val;
-			//_vertexData[_currBuffer][4 * idx + 1] += val;
-			//_vertexData[1 - _currBuffer][4 * idx + 1] += val;
+			// Clamp inputs.
+			x = Math.max(0.0, Math.min(x, 1.0));
+			y = Math.max(0.0, Math.min(y, 1.0));
+			// Set shader parameters.
+			_dropShader.data.GridSize.value = [_gridSize, _gridSize];
+			_dropShader.data.Radius.value = [radius];
+			_dropShader.data.Strength.value = [strength];
+			_dropShader.data.Center.value = [x, y];
+			// Run shader job.
+			var job:ShaderJob = new ShaderJob(_dropShader, _vertexData, _gridSize, _gridSize);
+			job.start(true);
 		}
 	}
 
