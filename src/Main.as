@@ -37,7 +37,7 @@ package
 			_skybox = new SkyBox("data/cubemap.png", SkyBox.HORIZONTAL_CROSS, null, 1.0);
 			_scene.addChild(_skybox);
 			
-			_water = new Water(_scene, 200, 200);
+			_water = new Water(_scene, 200, 150);
 			_water.WaterPlane.useHandCursor = true;
 			_water.WaterPlane.mouseEnabled = true;
 			//_water.WaterPlane.addEventListener(MouseEvent3D.CLICK, onPlaneMouseMove);
@@ -49,7 +49,7 @@ package
 			
 			_rainTimer = new Timer(100, 0);
 			_rainTimer.addEventListener(TimerEvent.TIMER, onRain);
-			_rainTimer.start();
+			//_rainTimer.start();
 			
 			_mouseCollider = new MouseCollision(_scene.camera);
 			_mouseCollider.addCollisionWith(_water.WaterPlane);
@@ -62,7 +62,7 @@ package
 			{
 				var u:Number = _mouseCollider.data[0].u;
 				var v:Number = _mouseCollider.data[0].v;
-				_water.displacePoint01(1.0 - u, 1.0 - v, 0.03, 1.5);
+				_water.displacePoint01(1.0 - u, 1.0 - v, 0.03, 2.0);// 1.5);
 			}
 			
 			_water.update();
