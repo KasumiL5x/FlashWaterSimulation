@@ -95,7 +95,7 @@ float4 fragmentShader()
 	color = mix(float4(color, 1.0), float4(BaseColor, 1.0), dp).xyz;
 	color = mix(float4(color, 1.0), float4(reflection_color.xyz, 1.0), 1.0 - reflection_color.a).xyz;
 	color = mix(float4(color, 1.0), float4(foam, 1.0), dp).xyz;
-	//color = mix(float4(color, 1.0), float4(wave_color, 1.0), dp).xyz;
+	color = mix(float4(color, 1.0), float4(wave_color, 1.0), dp).xyz;
 	color += Ambient * BaseColor + (specular * 0.66);
 	
 	//color *= (1 - length(iUV0 - 0.5) * 2.0); // Fog
