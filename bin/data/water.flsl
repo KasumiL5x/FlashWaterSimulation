@@ -4,8 +4,6 @@ use namespace flare.filters;
 use namespace flare.blendMode;
 
 samplerCube CubeTex;
-//sampler2D NormalTex;
-sampler2D FoamTex;
 sampler2D ReflectionTex;
 param float3 BaseColor;
 param float Ambient;
@@ -41,12 +39,10 @@ float4 vertexShader()
 
 float4 fragmentShader()
 {
-	float3 V = interp_pos - cam_pos;
 	
-	float3 N = float3(0.0, 1.0, 0.0);
-	N = 2.0 * float3(color_b, sqrt(1.0 - dot(float2(color_b, color_a), float2(color_b, color_a))), color_a) - 1.0;
-	//N += sampler2D(NormalTex, iUV0 * 20.0 + time.wz * 0.1).xyz - 0.5;
-	//N += sampler2D(NormalTex, iUV0 * 20.0 - time.zw * 0.1).xyz - 0.5;
+	
+	// Recompute the normal from the two stored values we have.
+	float3 N = 2.0 * float3(color_b, sqrt(1.0 - dot(float2(color_b, color_a), float2(color_b, color_a))), color_a) - 1.0;
 	N = normalize(N);
 	
 	// A little offset to UVs using the normal.  Gives a nice refracted effect.
@@ -56,13 +52,17 @@ float4 fragmentShader()
 	float3 L = normalize(float3(0.0, 0.8, -0.4));
 	float dp = max(dot(L, N), 0.0);
 	
+	// View vector.
+	float3 V = interp_pos - cam_pos;
+	
 	// Reflection vector.
 	float3 RV = normalize(reflect(V, N));
-	float3 refract = normalize(refract(V, N, 0.66));
+	//float3 refract = normalize(refract(V, N, 0.66));
 	
-	float4 cube_reflect = samplerCube(CubeTex, RV + refr_uv_offset);
+	// Cubemap reflection.
+	float4 cube_reflect = samplerCube(CubeTex, RV + refr_uv_offset) * 0.75;
 	
-	// Sunlight computation.
+	// Sunlight equation.
 	float SUN_STRENGTH = 5.0;
 	float SUN_SHINE = 30.0;
 	float3 Sunlight = pow(SUN_STRENGTH * pow(max(0.0, dot(RV, L)), SUN_SHINE) * float3(1.2, 0.4, 0.1), 1 / 1.2); // 0.454545r
@@ -70,21 +70,26 @@ float4 fragmentShader()
 	// Commented out as I've ran out of shader instructions... silly flash!
 	//float3 wave_color = min(BaseColor * 0.60, pow(float3(color_r), 4));
 	
-	// Projected UV.
+	// Screen-space UV for reflections.
 	float2 proj_uv = projected_pos.xy / projected_pos.w * float2(0.5, -0.5) + 0.5;
+	
+	// Reflection of the scene.
 	float4 reflection_color = sampler2D(ReflectionTex, proj_uv );
 	reflection_color.a *= 0.25;
 	
+	// Foam based on height.
 	float MIN_H = 3.0;
 	float MAX_H = 5.1;
-	float3 foam_color = sampler2D(FoamTex, iUV0 + refr_uv_offset.xz).xyz;
+	float3 foam_color = float3(0.2);
 	float3 foam = foam_color * max(0.0, (color_r - MIN_H) / (MAX_H - MIN_H));
 	
+	// Specular highlights (from some paper I found online).
 	float3 vref = normalize(reflect(L, N)).xyz;
 	float spec_tmp = max(0.0, dot(L, vref));
 	spec_tmp = pow(spec_tmp, 1.0);
 	float3 specular = float3(spec_tmp);
 	
+	// Big pick 'n' mix of colors.
 	float3 color = float3(0.0);
 	color = cube_reflect.xyz + Sunlight;
 	color = mix(float4(color, 1.0), float4(BaseColor, 1.0), dp).xyz;
@@ -94,7 +99,7 @@ float4 fragmentShader()
 	color += Ambient * BaseColor + (specular * 0.66);
 	
 	//color *= (1 - length(iUV0 - 0.5) * 2.0); // Fog
-	return float4(color, 0.5);
+	return float4(color, 1.0);
 }
 
 technique main

@@ -83,14 +83,10 @@ package
 		
 		private function initShaders():void
 		{
-			var foamTexture:Texture3D = new Texture3D("data/foam.png");
-			foamTexture.wrapMode = Texture3D.WRAP_REPEAT;
 			var cubemapTexture:Texture3D = new Texture3D("data/cubemap.png", false, Texture3D.FORMAT_RGBA, Texture3D.TYPE_CUBE);
 			cubemapTexture.wrapMode = Texture3D.WRAP_REPEAT;
 			_shader = new FLSLMaterial("water_shader", new _shaderClass() as ByteArray);
 			_shader.params.CubeTex.value = cubemapTexture;
-			////_shader.params.NormalTex.value = new Texture3D("data/normals.png");
-			_shader.params.FoamTex.value = foamTexture;
 			//_shader.params.ReflectionTex.value = foamTexture;
 			////_shader.params.ReflectionTex.value = new Texture3D("data/highlights.png");
 			//
