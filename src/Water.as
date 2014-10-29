@@ -84,10 +84,9 @@ package
 		private function initShaders():void
 		{
 			var cubemapTexture:Texture3D = new Texture3D("data/cubemap.png", false, Texture3D.FORMAT_RGBA, Texture3D.TYPE_CUBE);
-			cubemapTexture.wrapMode = Texture3D.WRAP_REPEAT;
+			cubemapTexture.filterMode = Texture3D.FILTER_LINEAR;
 			_shader = new FLSLMaterial("water_shader", new _shaderClass() as ByteArray);
 			_shader.params.CubeTex.value = cubemapTexture;
-			//_shader.params.ReflectionTex.value = foamTexture;
 			////_shader.params.ReflectionTex.value = new Texture3D("data/highlights.png");
 			//
 			////_shader.params.BaseColor.value[0] = 0.39; _shader.params.BaseColor.value[1] = 0.58; _shader.params.BaseColor.value[2] = 0.93; // Cornflower blue
@@ -98,6 +97,7 @@ package
 			//_shader.params.BaseColor.value[0] = 0.84; _shader.params.BaseColor.value[1] = 0.87; _shader.params.BaseColor.value[2] = 0.14; // Slime green
 			//
 			_shader.params.Ambient.value[0] = 0.2;
+			_shader.build();
 		}
 		
 		private function initRenderables():void

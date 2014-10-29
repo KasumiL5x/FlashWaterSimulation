@@ -5,14 +5,11 @@ use namespace flare.blendMode;
 
 samplerCube CubeTex;
 sampler2D ReflectionTex;
-param float3 BaseColor = float3(1.0, 0.0, 0.0);
-param float Ambient = 0.2;
+param float3 BaseColor;
+param float Ambient;
 
 interpolated float3 interp_pos;
 interpolated float4 projected_pos;
-interpolated float3 interp_nrm;
-
-param float3 L = normalize(float3(0.4, 0.5, 0.4));
 
 float4 vertexShader()
 {
@@ -21,72 +18,66 @@ float4 vertexShader()
 	interp_pos = pos.xyz;
 	pos *= worldViewProj;
 	projected_pos = pos;
-	
-	float2 N_XZ = float2(color0.b, color0.a);
-	interp_nrm = normalize(float3(color0.b, sqrt(1.0 - dot(N_XZ, N_XZ)), color0.a));
-	
 	return pos;
 }
 
 float4 fragmentShader()
 {
 	// Recompute the normal from the two stored values we have.
-	//float2 N_XZ = float2(iColor0.b, iColor0.a);
-	//float3 N = float3(iColor0.b, sqrt(1.0 - dot(N_XZ, N_XZ)), iColor0.a);
-	//N = normalize(N);
-	float3 N = interp_nrm;
+	float3 N = float3(iColor0.b, sqrt(1.0 - dot(float2(iColor0.b, iColor0.a), float2(iColor0.b, iColor0.a))), iColor0.a);
+	N = normalize(N);
 	
 	// A little offset to UVs using the normal.  Gives a nice refracted effect.
 	float3 refr_uv_offset = N * 0.2;
-	// View vector.
-	float3 V = normalize(interp_pos - camPos);
-	// Reflection vector.
-	float3 RV = normalize(reflect(V, N));
-	// Refraction vector.
-	//float3 refract = normalize(refract(V, N, 0.66));
 	
 	// Simple lighting.
-	
+	float3 L = normalize(float3(0.4, 0.5, 0.4));
 	float dp = max(dot(L, N), 0.0);
 	
-	// Screen-space UV for reflections.
-	float2 proj_uv = projected_pos.xy / projected_pos.w * const(0.5, -0.5) + 0.5;
+	// View vector.
+	float3 V = normalize(interp_pos - camPos);
 	
-	// Sunlight equation.
-	float SUN_STRENGTH = 5.0;
-	float SUN_SHINE = 30.0;
-	float3 Sunlight = pow(SUN_STRENGTH * pow(max(0.0, dot(RV, L)), SUN_SHINE) * float3(1.2, 0.4, 0.1), 0.45454545454545454545454545454545); // 1.0/2.2
+	// Reflection vector.
+	float3 RV = normalize(reflect(V, N));
+	//float3 refract = normalize(refract(V, N, 0.66));
 	
 	// Cubemap reflection.
 	float4 cube_reflect = samplerCube(CubeTex, RV);// + refr_uv_offset);
 	
-	// Reflection of the scene.
-	float4 reflection_color = sampler2D(ReflectionTex, proj_uv);
-	reflection_color.a *= 0.25;
+	// Sunlight equation.
+	float SUN_STRENGTH = 5.0;
+	float SUN_SHINE = 30.0;
+	float3 Sunlight = pow(SUN_STRENGTH * pow(max(0.0, dot(RV, L)), SUN_SHINE) * float3(1.2, 0.4, 0.1), 1 / 2.2); // 0.454545r
 	
 	// Color of wave based on height.
 	float3 wave_color = min(BaseColor * 0.60, pow(float3(iColor0.r), 4));
 	
+	// Screen-space UV for reflections.
+	float2 proj_uv = projected_pos.xy / projected_pos.w * float2(0.5, -0.5) + 0.5;
+	
+	// Reflection of the scene.
+	float4 reflection_color = sampler2D(ReflectionTex, proj_uv );
+	reflection_color.a *= 0.25;
+	
 	// Foam based on height.
 	float MIN_H = 3.0;
 	float MAX_H = 5.1;
-	float3 foam = float3(0.2) * max(0.0, (iColor0.r - MIN_H) / (MAX_H - MIN_H));
+	float3 foam_color = float3(0.2);
+	float3 foam = foam_color * max(0.0, (iColor0.r - MIN_H) / (MAX_H - MIN_H));
 	
 	// Specular highlights (from some paper I found online).
 	float3 vref = normalize(reflect(L, N)).xyz;
-	//float3 vref = normalize(2.0 * (N * -dot(L, N)) + L);
 	float spec_tmp = max(0.0, dot(L, vref));
 	spec_tmp = pow(spec_tmp, 1.0);
-	float3 specularColor = float3(spec_tmp) * 0.66;
+	float3 specular = float3(spec_tmp);
 	
 	// Big pick 'n' mix of colors.
 	float3 color = cube_reflect.xyz + Sunlight;
-	color = mix(float4(color, 1.0), float4(reflection_color.xyz, 1.0), 1.0 - reflection_color.a).xyz;
 	color = mix(float4(color, 1.0), float4(BaseColor, 1.0), dp).xyz;
-	color = mix(float4(color, 1.0), float4(wave_color, 1.0), dp).xyz;
+	color = mix(float4(color, 1.0), float4(reflection_color.xyz, 1.0), 1.0 - reflection_color.a).xyz;
 	color = mix(float4(color, 1.0), float4(foam, 1.0), dp).xyz;
-	color += (Ambient * BaseColor) + specularColor;
-	//color += Ambient * BaseColor + (specular * 0.66);
+	color = mix(float4(color, 1.0), float4(wave_color, 1.0), dp).xyz;
+	color += Ambient * BaseColor + (specular * 0.66);
 	
 	//color *= (1 - length(iUV0 - 0.5) * 2.0); // Fog
 	return float4(color, 1.0);
