@@ -10,6 +10,7 @@ package
 	import flare.physics.colliders.Collider;
 	import flare.physics.colliders.MeshCollider;
 	import flare.physics.Contact;
+	import flare.physics.geom.BVH;
 	import flare.primitives.*;
 	import flare.system.Input3D;
 	import flash.display.*;
@@ -34,9 +35,10 @@ package
 		private var _reflectionTex:Texture3D;
 		private var _reflectionTexSize:uint = 512;
 		
-		// -*- Water creation properties -*-
+		// -*- Water properties -*-
 		private var _gridSize:uint = 200;
 		private var _planeSize:uint = 200;
+		private var _canDisturbWater:Boolean = false;
 		
 		// -*- Box settings -*-
 		private var _boxYOffset:int = 5;
@@ -90,7 +92,12 @@ package
 		
 		private function onUpdate( e:Event ):void
 		{
-			if ( Input3D.keyDown(Input3D.SPACE) )
+			// Toggle disturbing of the water.
+			if ( Input3D.keyHit(Input3D.SPACE) )
+			{ _canDisturbWater = !_canDisturbWater; }
+			
+			// Disturb the water if the mouse is over it.
+			if ( _canDisturbWater )
 			{
 				var cols:Boolean = _mouseCollider.test(Input3D.mouseX, Input3D.mouseY);
 				if ( cols )
