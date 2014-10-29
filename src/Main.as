@@ -90,12 +90,15 @@ package
 		
 		private function onUpdate( e:Event ):void
 		{
-			var cols:Boolean = _mouseCollider.test(Input3D.mouseX, Input3D.mouseY);
-			if ( cols )
+			if ( Input3D.keyDown(Input3D.SPACE) )
 			{
-				var u:Number = _mouseCollider.data[0].u;
-				var v:Number = _mouseCollider.data[0].v;
-				_water.displacePoint01(1.0 - u, 1.0 - v, 0.03, 2.0);// 1.5);
+				var cols:Boolean = _mouseCollider.test(Input3D.mouseX, Input3D.mouseY);
+				if ( cols )
+				{
+					var u:Number = _mouseCollider.data[0].u;
+					var v:Number = _mouseCollider.data[0].v;
+					_water.displacePoint01(1.0 - u, 1.0 - v, 0.03, 2.0);// 1.5);
+				}
 			}
 			
 			_water.update();
@@ -115,11 +118,6 @@ package
 			_scene.context.clear(0, 0, 0, 0);
 			
 			// Render everything that we want to reflect.
-			//left.draw();
-			//right.draw();
-			//front.draw();
-			//back.draw();
-			//ground.draw();
 			_randomBox.y = -_randomBox.y;
 			_randomBox.draw();
 			_randomBox.y = -_randomBox.y;

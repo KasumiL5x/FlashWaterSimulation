@@ -16,7 +16,7 @@
     </define>
     <define append="true">
       <name>CONFIG::timeStamp</name>
-      <value>'10/29/2014'</value>
+      <value>'2014/10/29'</value>
     </define>
     <define append="true">
       <name>CONFIG::air</name>
@@ -34,15 +34,15 @@
     <omit-trace-statements>true</omit-trace-statements>
     <verbose-stacktraces>false</verbose-stacktraces>
     <source-path append="true">
-      <path-element>C:\Users\dgreen\Desktop\kasumil5x-watersimulation-eccb99a2caa6\src</path-element>
+      <path-element>E:\projects\WaterSimulation\src</path-element>
       <path-element>C:\Program Files (x86)\FlashDevelop\Library\AS3\classes</path-element>
     </source-path>
     <library-path append="true">
-      <path-element>C:\Users\dgreen\Desktop\kasumil5x-watersimulation-eccb99a2caa6\lib\Flare3D_2.7.1_Trial.swc</path-element>
+      <path-element>E:\projects\WaterSimulation\lib\Flare3D_2.7.1_Trial.swc</path-element>
     </library-path>
   </compiler>
   <file-specs>
-    <path-element>C:\Users\dgreen\Desktop\kasumil5x-watersimulation-eccb99a2caa6\src\Main.as</path-element>
+    <path-element>E:\projects\WaterSimulation\src\Main.as</path-element>
   </file-specs>
   <default-background-color>#FFFFFF</default-background-color>
   <default-frame-rate>60</default-frame-rate>
