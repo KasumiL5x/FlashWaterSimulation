@@ -24,5 +24,7 @@ kernel water_update
 		destination.y += (avg - destination.x) * 2.0;
 		destination.y *= 0.985;//0.995;
 		destination.x += destination.y;
+		
+		destination.x *= 0.99;
 	}
 }

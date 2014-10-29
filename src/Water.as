@@ -56,6 +56,10 @@ package
 		private var _plane:Plane;    /**< Final rendererd geometry. */
 		private var _planeSize:uint; /**< Size of the plane geometry. */
 		
+		// -*- Embedded textures and shit -*-
+		[Embed(source="/../bin/data/cubemap.png", mimeType="application/octet-stream")]
+		private var CubemapTextureBytes:Class;
+		
 		public function Water( scene:Scene3D, gridSize:uint, planeSize:uint )
 		{
 			this._scene = scene;
@@ -68,7 +72,7 @@ package
 			updateShaderConstants();
 			
 			//displaceRadius01(0.99, 0.99, 2.0, 50);
-			//displaceRadius(0.5, 0.5, 10.0, 10.0);
+			displacePoint01(0.5, 0.5, 0.1, 10.0);
 		}
 		
 		public function get WaterPlane():Plane
@@ -83,11 +87,11 @@ package
 		
 		private function initShaders():void
 		{
-			var cubemapTexture:Texture3D = new Texture3D("data/cubemap.png", false, Texture3D.FORMAT_RGBA, Texture3D.TYPE_CUBE);
+			//var cubemapTexture:Texture3D = new Texture3D("data/cubemap.png", false, Texture3D.FORMAT_RGBA, Texture3D.TYPE_CUBE);
+			var cubemapTexture:Texture3D = new Texture3D(new CubemapTextureBytes() as ByteArray, false, Texture3D.FORMAT_RGBA, Texture3D.TYPE_CUBE);
 			cubemapTexture.filterMode = Texture3D.FILTER_LINEAR;
 			_shader = new FLSLMaterial("water_shader", new _shaderClass() as ByteArray);
 			_shader.params.CubeTex.value = cubemapTexture;
-			////_shader.params.ReflectionTex.value = new Texture3D("data/highlights.png");
 			//
 			////_shader.params.BaseColor.value[0] = 0.39; _shader.params.BaseColor.value[1] = 0.58; _shader.params.BaseColor.value[2] = 0.93; // Cornflower blue
 			_shader.params.BaseColor.value[0] = 0.21; _shader.params.BaseColor.value[1] = 0.32; _shader.params.BaseColor.value[2] = 0.55; // Sea blue

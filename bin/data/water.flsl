@@ -74,7 +74,6 @@ float4 fragmentShader()
 	
 	// Specular highlights (from some paper I found online).
 	float3 vref = normalize(reflect(L, N)).xyz;
-	//float3 vref = normalize(2.0 * (N * -dot(L, N)) + L);
 	float spec_tmp = max(0.0, dot(L, vref));
 	spec_tmp = pow(spec_tmp, 1.0);
 	float3 specularColor = float3(spec_tmp) * 0.66;
@@ -86,7 +85,6 @@ float4 fragmentShader()
 	color = mix(float4(color, 1.0), float4(wave_color, 1.0), dp).xyz;
 	color = mix(float4(color, 1.0), float4(foam, 1.0), dp).xyz;
 	color += (Ambient * BaseColor) + specularColor;
-	//color += Ambient * BaseColor + (specular * 0.66);
 	
 	//color *= (1 - length(iUV0 - 0.5) * 2.0); // Fog
 	return float4(color, 1.0);
