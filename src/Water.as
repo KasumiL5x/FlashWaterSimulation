@@ -91,6 +91,7 @@ package
 			var cubemapTexture:Texture3D = new Texture3D(new CubemapTextureBytes() as ByteArray, false, Texture3D.FORMAT_RGBA, Texture3D.TYPE_CUBE);
 			cubemapTexture.filterMode = Texture3D.FILTER_LINEAR;
 			_shader = new FLSLMaterial("water_shader", new _shaderClass() as ByteArray);
+			_shader.transparent = true;
 			_shader.params.CubeTex.value = cubemapTexture;
 			//
 			////_shader.params.BaseColor.value[0] = 0.39; _shader.params.BaseColor.value[1] = 0.58; _shader.params.BaseColor.value[2] = 0.93; // Cornflower blue
