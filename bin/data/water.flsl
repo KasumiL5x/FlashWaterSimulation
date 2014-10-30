@@ -8,6 +8,25 @@ sampler2D ReflectionTex;
 param float3 BaseColor = float3(1.0, 0.0, 0.0);
 param float Ambient = 0.2;
 
+// -*- Foam properties -*-
+param float FoamMinHeight = 3.0;
+param float FoamMaxHeight = 5.1;
+param float3 FoamColor = float3(0.2);
+
+// -*- Sunlight properties -*-
+param float SunStrength = 5.0;
+param float SunShine = 30.0;
+param float3 SunColor = float3(1.2, 0.4, 0.1);
+param float SunPow = 0.45454545454545454545454545454545;
+
+// -*- wave color properties -*-
+param float WaveColorMod = 0.60;
+param float WaveColorPow = 4.0;
+
+// -*- Specular properties -*-
+param float SpecularPow = 1.0;
+param float SpecularMod = 0.66;
+
 interpolated float3 interp_pos;
 interpolated float4 projected_pos;
 interpolated float3 interp_nrm;
@@ -37,7 +56,7 @@ float4 fragmentShader()
 	float3 N = interp_nrm;
 	
 	// A little offset to UVs using the normal.  Gives a nice refracted effect.
-	float3 refr_uv_offset = N * 0.2;
+	//float3 refr_uv_offset = N * 0.2;
 	// View vector.
 	float3 V = normalize(interp_pos - camPos);
 	// Reflection vector.
@@ -53,30 +72,26 @@ float4 fragmentShader()
 	float2 proj_uv = projected_pos.xy / projected_pos.w * const(0.5, -0.5) + 0.5;
 	
 	// Sunlight equation.
-	float SUN_STRENGTH = 5.0;
-	float SUN_SHINE = 30.0;
-	float3 Sunlight = pow(SUN_STRENGTH * pow(max(0.0, dot(RV, L)), SUN_SHINE) * float3(1.2, 0.4, 0.1), 0.45454545454545454545454545454545); // 1.0/2.2
+	float3 Sunlight = pow(SunStrength * pow(max(0.0, dot(RV, L)), SunShine) * SunColor, SunPow);
 	
 	// Cubemap reflection.
-	float4 cube_reflect = samplerCube(CubeTex, RV);// + refr_uv_offset);
+	float4 cube_reflect = samplerCube(CubeTex, RV);
 	
 	// Reflection of the scene.
-	float4 reflection_color = sampler2D(ReflectionTex, proj_uv);
-	reflection_color.a *= 0.25;
+	float4 reflection_color = sampler2D(ReflectionTex, proj_uv + N.xz * 0.2);
+	//reflection_color.a *= 0.25;
 	
 	// Color of wave based on height.
-	float3 wave_color = min(BaseColor * 0.60, pow(float3(iColor0.r), 4));
+	float3 wave_color = min(BaseColor * WaveColorMod, pow(iColor0.rrr, WaveColorPow));
 	
 	// Foam based on height.
-	float MIN_H = 3.0;
-	float MAX_H = 5.1;
-	float3 foam = float3(0.2) * max(0.0, (iColor0.r - MIN_H) / (MAX_H - MIN_H));
+	float3 foam = FoamColor * max(0.0, (iColor0.r - FoamMinHeight) / (FoamMaxHeight - FoamMinHeight));
 	
 	// Specular highlights (from some paper I found online).
 	float3 vref = normalize(reflect(L, N)).xyz;
 	float spec_tmp = max(0.0, dot(L, vref));
-	spec_tmp = pow(spec_tmp, 1.0);
-	float3 specularColor = float3(spec_tmp) * 0.66;
+	spec_tmp = pow(spec_tmp, SpecularPow);
+	float3 specularColor = float3(spec_tmp) * SpecularMod;
 	
 	// Big pick 'n' mix of colors.
 	float3 color = cube_reflect.xyz + Sunlight;

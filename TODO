@@ -2,4 +2,3 @@ Todo:
 	- Add transparency (so you can see through it!)
 	- Add caustics (https://www.youtube.com/watch?v=rWyWiAOnJ5Y#t=59, http://www.dualheights.se/caustics/, scroll two textures w/ uv distortion and some blending)
 	- Add wind and/or sine wave of 'ocean' so it's never static
-	- Embed all textures instead of loading them in runtime.

@@ -18,6 +18,7 @@ package
 	import flash.events.TimerEvent;
 	import flash.geom.Point;
 	import flash.geom.Vector3D;
+	import flash.utils.ByteArray;
 	import flash.utils.getTimer;
 	import flash.utils.Timer;
 	
@@ -54,6 +55,10 @@ package
 		private var _randomBox:Box;
 		private var _randomBoxHeight:Number = 10.0;
 		
+		// -*- Skybox texture -*-
+		[Embed(source="/../bin/data/cubemap.png", mimeType="application/octet-stream")]
+		private var SkyboxTexture:Class;
+		
 		public function Main():void
 		{
 			_scene = new Viewer3D(this, "", 0.2);
@@ -62,7 +67,7 @@ package
 			_scene.camera.setPosition(120, 40, -30);
 			_scene.camera.lookAt(0, 0, 0);
 			
-			_skybox = new SkyBox("data/cubemap.png", SkyBox.HORIZONTAL_CROSS, null, 1.0);
+			_skybox = new SkyBox(new SkyboxTexture() as ByteArray, SkyBox.HORIZONTAL_CROSS, null, 1.0);
 			_scene.addChild(_skybox);
 			
 			// Create the scene reflection texture.
