@@ -7,28 +7,38 @@ kernel water_update
 	version: 1;
 >
 {
-	input image4 source;
+	input  image4 source;
 	output pixel4 destination;
 
 	void evaluatePixel()
 	{
+		// source.x = destination.x = height
+		// source.y = destination.y = velocity
+		// source.z = destination.z = normal.x
+		// source.w = destination.w = normal.z
+
 		float2 coord = outCoord();
 		
 		// Delta size of one pixel.
 		float2 dx = float2(pixelSize(source).x, 0.0);
 		float2 dy = float2(0.0, pixelSize(source).y);
+		
 		// Average of surrounding heights.
 		float left  = sampleNearest(source, coord - dx).r;
 		float right = sampleNearest(source, coord + dx).r;
 		float up    = sampleNearest(source, coord - dy).r;
 		float down  = sampleNearest(source, coord + dy).r;
 		float avg = (left + right + up + down) * 0.25;
-		// 
-		destination = sampleNearest(source, coord).xyzw;
-		destination.y += (avg - destination.x) * 2.0;
-		destination.y *= 0.985;//0.995;
-		destination.x += destination.y;
 		
+		// Initialize destination to input as to not loose data.
+		destination = sampleNearest(source, coord).xyzw;
+		// Move the velocity towards the average.
+		destination.y += (avg - destination.x) * 2.0;
+		// Bleed off so it doesn't last for ever.
+		destination.y *= 0.985;
+		// Interpolate position based on velocity.
+		destination.x += destination.y;
+		// Bleed off position -- shouldn't be required, but it helps.
 		destination.x *= 0.99;
 	}
 }

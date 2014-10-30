@@ -12,15 +12,25 @@ kernel water_normals
 
 	void evaluatePixel()
 	{
-		// Simple passthrough for testing.
-		//destination = sampleNearest(source, outCoord()).xyzw;
+		// source.x = destination.x = height
+		// source.y = destination.y = velocity
+		// source.z = destination.z = normal.x
+		// source.w = destination.w = normal.z
 		
 		float2 coord = outCoord();
+
+		// Initialize destination to input as to not loose data.
 		destination = sampleNearest(source, coord).xyzw;
+
+		// Delta size of one pixel.
 		float2 delta = pixelSize(source);
+
+		// Compute the normal based on the position and velocity information.
 		float3 n_dx = normalize(float3(delta.x, sampleNearest(source, float2(coord.x + delta.x, coord.y)).x - destination.x, 0.0));
 		float3 n_dy = normalize(float3(0.0, sampleNearest(source, float2(coord.x, coord.y + delta.y)).x - destination.x, delta.y));
 		float3 normal = normalize(cross(n_dy, n_dx));
+		
+		// Only save X and Z, and recompute Y later.
 		destination.z = normal.x;
 		destination.w = normal.z;
 	}

@@ -1,6 +1,6 @@
 <languageVersion: 1.0;>
 
-kernel water_update
+kernel water_drop
 <
 	namespace: "dgreen";
 	vendor: "dgreen";
@@ -47,6 +47,7 @@ kernel water_update
 		float drop = max(0.0, 1.0 - length(Center - coord) / Radius);
 		// Fudge!
 		drop = 0.5 - cos(drop * 3.141592653589793) * 0.5;
+		
 		// Drop the basssssssss.
 		destination.x += drop * Strength;
 	}
