@@ -97,6 +97,19 @@ package
 		
 		private function onUpdate( e:Event ):void
 		{
+			// Toggle rain timer.
+			if ( Input3D.keyHit(Input3D.CONTROL) )
+			{
+				if ( _rainTimer.running )
+				{
+					_rainTimer.stop()
+				}
+				else
+				{
+					_rainTimer.start();
+				}
+			}
+			
 			// Toggle disturbing of the water.
 			if ( Input3D.keyHit(Input3D.SPACE) )
 			{ _canDisturbWater = !_canDisturbWater; }
