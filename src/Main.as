@@ -4,6 +4,8 @@ package
 	import flare.collisions.MouseCollision;
 	import flare.core.*;
 	import flare.events.*;
+	import flare.loaders.ColladaLoader;
+	import flare.loaders.Flare3DLoader1;
 	import flare.materials.*;
 	import flare.materials.filters.*;
 	import flare.physics.colliders.BoxCollider;
@@ -66,6 +68,15 @@ package
 			_scene.autoResize = true;
 			_scene.camera.setPosition(120, 40, -30);
 			_scene.camera.lookAt(0, 0, 0);
+
+			var dir_light:Light3D = new Light3D("sunlight", Light3D.DIRECTIONAL);
+			var dir_light_dir:Vector3D = new Vector3D(-0.4, -0.5, -0.4);
+			dir_light_dir.normalize();
+			dir_light.setOrientation(dir_light_dir);
+			//dir_light.color = new Vector3D(0.0, 1.0, 0.0);
+			_scene.lights.defaultLight = null;
+			_scene.addChild(dir_light);
+			_scene.lights.techniqueName = "phong";
 			
 			_skybox = new SkyBox(new SkyboxTexture() as ByteArray, SkyBox.HORIZONTAL_CROSS, null, 1.0);
 			_scene.addChild(_skybox);
@@ -82,10 +93,10 @@ package
 			_water.MirrorTexture = _reflectionTex;
 			_water.WaterPlane.useHandCursor = true;
 			_water.WaterPlane.mouseEnabled = true;
-			_scene.addChild(_water.WaterPlane);
 			
 			_scene.addEventListener(Scene3D.UPDATE_EVENT, onUpdate);
 			_scene.addEventListener(Scene3D.RENDER_EVENT, onPreRender);
+			_scene.addEventListener(Scene3D.POSTRENDER_EVENT, onPostRender);
 			
 			_rainTimer = new Timer(100, 0);
 			_rainTimer.addEventListener(TimerEvent.TIMER, onRain);
@@ -154,6 +165,12 @@ package
 			_scene.context.setRenderToBackBuffer();
 		}
 		
+		private function onPostRender( e:Event ):void
+		{
+			// Draw water after everything else.
+			_water.WaterPlane.draw();
+		}
+		
 		private function onRain( evt:TimerEvent ):void
 		{
 			var random_x:Number = Math.random();
@@ -164,8 +181,9 @@ package
 		private function configureBox():void
 		{
 			var box_mat:Shader3D = new Shader3D("box_mat");
-			box_mat.filters.push(new ColorFilter(0xFFFFFF, 1.0));
-			box_mat.transparent = false;
+			var cf:ColorFilter = new ColorFilter(0x444444, 1.0);
+			box_mat.filters.push(cf);
+			box_mat.build();
 			
 			var v_offset:int = _boxYOffset - _boxHeight / 2;
 			var h_offset:int = _planeSize / 2 + _boxThickness / 2;
@@ -190,7 +208,10 @@ package
 			ground.setPosition(0, -_boxHeight + _boxThickness, 0);
 			_scene.addChild(ground);
 			
-			_randomBox = new Box("random_box", 10, 10, 10, 1, box_mat);
+			var random_mat:Shader3D = new Shader3D("random_mat");
+			random_mat.filters.push(new ColorFilter(0xFF00FF, 1.0));
+			random_mat.build();
+			_randomBox = new Box("random_box", 10, 10, 10, 1, random_mat);
 			_randomBox.setPosition(0, 10, 0);
 			_scene.addChild(_randomBox);
 		}

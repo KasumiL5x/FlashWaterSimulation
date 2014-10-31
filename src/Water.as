@@ -96,12 +96,12 @@ package
 			//
 			////_shader.params.BaseColor.value[0] = 0.39; _shader.params.BaseColor.value[1] = 0.58; _shader.params.BaseColor.value[2] = 0.93; // Cornflower blue
 			_shader.params.BaseColor.value[0] = 0.21; _shader.params.BaseColor.value[1] = 0.32; _shader.params.BaseColor.value[2] = 0.55; // Sea blue
-			////_shader.params.BaseColor.value[0] = 0.03; _shader.params.BaseColor.value[1] = 0.52; _shader.params.BaseColor.value[2] = 0.74; // Coolwater blue
+			//_shader.params.BaseColor.value[0] = 0.03; _shader.params.BaseColor.value[1] = 0.52; _shader.params.BaseColor.value[2] = 0.74; // Coolwater blue
 			//_shader.params.BaseColor.value[0] = 1.0; _shader.params.BaseColor.value[1] = 0.0; _shader.params.BaseColor.value[2] = 1.0; // HOT pink ;)
 			//_shader.params.BaseColor.value[0] = 0.54; _shader.params.BaseColor.value[1] = 0.03; _shader.params.BaseColor.value[2] = 0.03; // Blood red
 			//_shader.params.BaseColor.value[0] = 0.84; _shader.params.BaseColor.value[1] = 0.87; _shader.params.BaseColor.value[2] = 0.14; // Slime green
 			//
-			_shader.params.Ambient.value[0] = 0.2;
+			_shader.params.Ambient.value[0] = 0.0;
 			_shader.build();
 		}
 		

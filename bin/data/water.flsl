@@ -14,18 +14,22 @@ param float FoamMaxHeight = 5.1;
 param float3 FoamColor = float3(0.2);
 
 // -*- Sunlight properties -*-
-param float SunStrength = 5.0;
-param float SunShine = 30.0;
+param float SunStrength = 0.2;
+param float SunShine = 75.0;
 param float3 SunColor = float3(1.2, 0.4, 0.1);
 param float SunPow = 0.45454545454545454545454545454545;
+param float SunEnvMod = 0.35;
 
 // -*- wave color properties -*-
-param float WaveColorMod = 0.60;
+param float WaveColorMod = 0.20;
 param float WaveColorPow = 4.0;
 
 // -*- Specular properties -*-
 param float SpecularPow = 1.0;
-param float SpecularMod = 0.66;
+param float SpecularMod = 0.26;
+
+// -*- Scene reflection properties -*-
+param float SceneReflectMod = 0.25;
 
 interpolated float3 interp_pos;
 interpolated float4 projected_pos;
@@ -50,7 +54,7 @@ float4 vertexShader()
 float4 fragmentShader()
 {
 	// Normal from VS.
-	float3 N = interp_nrm;
+	float3 N = normalize(interp_nrm);
 	
 	// Specular highlights (from some paper I found online).
 	float3 vref = normalize(reflect(L, N)).xyz;
@@ -58,8 +62,13 @@ float4 fragmentShader()
 	spec_tmp = pow(spec_tmp, SpecularPow);
 	float3 specularColor = float3(spec_tmp) * SpecularMod;
 	
+	// Simple lighting.
+	float dp = max(dot(L, N), 0.0);
+	
 	// Final output color starting with ambient, base color, and specularity.
-	float4 color = float4((Ambient * BaseColor) + specularColor, 0.0);
+	float3 diffuse = ((Ambient * BaseColor) + BaseColor) * dp;
+	float4 color = float4(diffuse, 0.0);
+	color.xyz += specularColor;
 	
 	// View vector.
 	float3 V = normalize(interp_pos - camPos);
@@ -68,34 +77,35 @@ float4 fragmentShader()
 	// Cubemap reflection.
 	float4 cube_reflect = samplerCube(CubeTex, RV);
 	// Sunlight equation.
-	float3 Sunlight = pow(SunStrength * pow(max(0.0, dot(RV, L)), SunShine) * SunColor, SunPow);
+	float3 sunlight = pow(SunStrength * pow(max(0.0, dot(RV, L)), SunShine) * SunColor, SunPow);
 	// Mix with cubemap reflection and sunlight.
-	color = mix(color, float4(cube_reflect.xyz + Sunlight, 0.0), 1.0);
+	color += float4((cube_reflect.xyz + sunlight) * SunEnvMod, 0.0);
 	
 	// Screen-space UV for reflections.
 	float2 proj_uv = projected_pos.xy / projected_pos.w * const(0.5, -0.5) + 0.5;
 	// Reflection of the scene (fudge the value a little to get some nice wavy sampling).
 	float4 reflection_color = sampler2D(ReflectionTex, proj_uv + N.xz * 0.2);
-	// Mix in the scene reflection.
-	color = mix(color, float4(reflection_color.xyz, 0.0), 1.0 - reflection_color.a);
-
-	// Simple lighting.
-	float dp = max(dot(L, N), 0.0);
-	
-	// Mix in the base color of the water.
-	color = mix(color, float4(BaseColor, 1.0), dp);
+	// Note: Can modulate reflection_color and its alpha by a value here to dim out the scene reflection amount.
+	// Mix in the scene reflection using reflection alpha (zero where there's no geometry).
+	color += float4(reflection_color.xyz * SceneReflectMod, reflection_color.a * SceneReflectMod);
 
 	// Color of wave based on height.
 	float3 wave_color = min(BaseColor * WaveColorMod, pow(iColor0.rrr, WaveColorPow));
 	// Mix in the wave color.
-	color = mix(color, float4(wave_color, 1.0), dp);
+	color += float4(wave_color, 0.0);
 	
 	// Foam based on height.
 	float3 foam = FoamColor * max(0.0, (iColor0.r - FoamMinHeight) / (FoamMaxHeight - FoamMinHeight));
 	// Mix in the foam color.
-	color = mix(color, float4(foam, 1.0), dp);
+	color += float4(foam, 0.0);
 	
-	return float4(color.xyz, color.a);
+	color.x = min(1.0, color.x);
+	color.y = min(1.0, color.y);
+	color.z = min(1.0, color.z);
+	color.w = min(1.0, color.w);
+	//color.w = 0.75;
+	
+	return color;
 }
 
 technique main
