@@ -46,6 +46,7 @@ package
 		[Embed(source = "/../bin/data/water_drop.pbj", mimeType = "application/octet-stream")]
 		private var DropShader:Class;
 		private var _dropShader:Shader;
+		private var _elapsedTime:Number = 0.0;
 		
 		// -*- Materials -*-
 		[Embed(source = "/../bin/data/water.flsl.compiled", mimeType = "application/octet-stream")]
@@ -59,6 +60,8 @@ package
 		// -*- Embedded textures and shit -*-
 		[Embed(source="/../bin/data/cubemap.png", mimeType="application/octet-stream")]
 		private var CubemapTextureBytes:Class;
+		[Embed(source = "../bin/data/normals_2.JPG", mimeType = "application/octet-stream")]
+		private var NormalTexture1:Class;
 		
 		public function Water( scene:Scene3D, gridSize:uint, planeSize:uint )
 		{
@@ -71,7 +74,6 @@ package
 			initSimulation();
 			updateShaderConstants();
 			
-			//displaceRadius01(0.99, 0.99, 2.0, 50);
 			displacePoint01(0.5, 0.5, 0.1, 10.0);
 		}
 		
@@ -102,6 +104,9 @@ package
 			//_shader.params.BaseColor.value[0] = 0.84; _shader.params.BaseColor.value[1] = 0.87; _shader.params.BaseColor.value[2] = 0.14; // Slime green
 			//
 			_shader.params.Ambient.value[0] = 0.0;
+			//
+			_shader.params.NormalTex1.value = new Texture3D(new NormalTexture1() as ByteArray);
+			//
 			_shader.build();
 		}
 		
@@ -173,9 +178,11 @@ package
 		
 		public function update():void
 		{
+			_elapsedTime += _scene.updateTime;
 			runUpdateShader();
 			runNormalsShader();
 			updateBuffers();
+			updateShaderConstants();
 		}
 		
 		public function displacePoint01( x:Number, y:Number, radius:Number=0.03, strength:Number=0.01 ):void

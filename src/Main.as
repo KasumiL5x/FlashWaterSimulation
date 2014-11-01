@@ -37,6 +37,7 @@ package
 		// -*- Scene reflection -*-
 		private var _reflectionTex:Texture3D;
 		private var _reflectionTexSize:uint = 512;
+		private var _reflectionCamera:Camera3D;
 		
 		// -*- Water properties -*-
 		private var _gridSize:uint = 200;
@@ -86,6 +87,8 @@ package
 			_reflectionTex.mipMode = Texture3D.MIP_NONE;
 			_reflectionTex.wrapMode = Texture3D.WRAP_CLAMP;
 			_reflectionTex.upload(_scene); // Send to GPU; generates an actual underlying texture.
+			
+			_reflectionCamera = new Camera3D("reflection_camera");
 			
 			configureBox();
 			
@@ -145,24 +148,38 @@ package
 		
 		private function onPreRender( e:Event ):void
 		{
-			// Flip the camera upside down, because it's a 'mirror image.'
-			_scene.camera.transform.appendScale(1.0, -1.0, 1.0);
+			/*
+			_reflectionCamera.copyTransformFrom(_scene.camera);
+			_reflectionCamera.transform.appendScale(1.0, -1.0, 1.0);
 			
-			// Set the render target to the mirror texture.
+			_scene.setupFrame(_reflectionCamera);
 			_scene.context.setRenderToTexture(_reflectionTex.texture, true);
-			// Clear texure.
-			_scene.context.clear(0, 0, 0, 0);
+			_scene.context.clear(0.0, 0.0, 0.0, 0.0);
 			
-			// Render everything that we want to reflect.
 			_randomBox.y = -_randomBox.y;
 			_randomBox.draw();
 			_randomBox.y = -_randomBox.y;
 			
+			_scene.context.setRenderToBackBuffer();
+			_scene.setupFrame(_scene.camera);
+			*/
+			
+			
+			// Flip the camera upside down, because it's a 'mirror image.'
+			_scene.camera.transform.appendScale(1.0, -1.0, 1.0);
+			// Set the render target to the mirror texture.
+			_scene.context.setRenderToTexture(_reflectionTex.texture, true);
+			// Clear texure.
+			_scene.context.clear(0, 0, 0, 0);
+			// Render everything that we want to reflect.
+			_randomBox.y = -_randomBox.y;
+			_randomBox.draw();
+			_randomBox.y = -_randomBox.y;
 			// Flip the camera back so we don't do the normal rendering upside down!
 			_scene.camera.transform.appendScale(1.0, -1.0, 1.0);
-			
 			// Restore the backbuffer as the render target.
 			_scene.context.setRenderToBackBuffer();
+			
 		}
 		
 		private function onPostRender( e:Event ):void

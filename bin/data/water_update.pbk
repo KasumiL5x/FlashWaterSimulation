@@ -20,7 +20,7 @@ kernel water_update
 		float2 coord = outCoord();
 		
 		// Delta size of one pixel.
-		float2 dx = float2(pixelSize(source).x, 0.0);
+		float2 dx = float2(pixelSize(source).x, 0.0);	
 		float2 dy = float2(0.0, pixelSize(source).y);
 		
 		// Average of surrounding heights.

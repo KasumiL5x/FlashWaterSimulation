@@ -5,6 +5,11 @@ use namespace flare.blendMode;
 
 samplerCube CubeTex;
 sampler2D ReflectionTex;
+sampler2D NormalTex1;
+
+param TIME time;
+
+// -*- Color properties -*-
 param float3 BaseColor = float3(1.0, 0.0, 0.0);
 param float Ambient = 0.2;
 
@@ -14,7 +19,7 @@ param float FoamMaxHeight = 5.1;
 param float3 FoamColor = float3(0.2);
 
 // -*- Sunlight properties -*-
-param float SunStrength = 0.2;
+param float SunStrength = 1.2;
 param float SunShine = 75.0;
 param float3 SunColor = float3(1.2, 0.4, 0.1);
 param float SunPow = 0.45454545454545454545454545454545;
@@ -54,7 +59,11 @@ float4 vertexShader()
 float4 fragmentShader()
 {
 	// Normal from VS.
-	float3 N = normalize(interp_nrm);
+	float3 N = interp_nrm;
+	// Sample normal texture for a look of idle movement.
+	N += (sampler2D(NormalTex1, iUV0 * 5.0 + time.xz * 0.05).xzy - 0.5) * 0.25;
+	N += (sampler2D(NormalTex1, iUV0 * 5.0 - time.xz * 0.05).xzy - 0.5) * 0.25;
+	N = normalize(N);
 	
 	// Specular highlights (from some paper I found online).
 	float3 vref = normalize(reflect(L, N)).xyz;
@@ -82,7 +91,7 @@ float4 fragmentShader()
 	color += float4((cube_reflect.xyz + sunlight) * SunEnvMod, 0.0);
 	
 	// Screen-space UV for reflections.
-	float2 proj_uv = projected_pos.xy / projected_pos.w * const(0.5, -0.5) + 0.5;
+	float2 proj_uv = projected_pos.xy / projected_pos.w * float2(0.5, -0.5) + 0.5;
 	// Reflection of the scene (fudge the value a little to get some nice wavy sampling).
 	float4 reflection_color = sampler2D(ReflectionTex, proj_uv + N.xz * 0.2);
 	// Note: Can modulate reflection_color and its alpha by a value here to dim out the scene reflection amount.
@@ -103,7 +112,7 @@ float4 fragmentShader()
 	color.y = min(1.0, color.y);
 	color.z = min(1.0, color.z);
 	color.w = min(1.0, color.w);
-	//color.w = 0.75;
+	color.w = 0.75;
 	
 	return color;
 }
