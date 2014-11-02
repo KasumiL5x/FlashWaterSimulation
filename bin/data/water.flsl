@@ -30,7 +30,7 @@ param float3 SunColor = float3(1.2, 0.4, 0.1);
 param float SunPow = 0.45454545454545454545454545454545;
 param float SunEnvMod = 0.40;
 
-// -*- wave color properties -*-
+// -*- Wave color properties -*-
 param float WaveColorMod = 0.20;
 param float WaveColorPow = 4.0;
 

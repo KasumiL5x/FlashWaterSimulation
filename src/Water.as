@@ -60,9 +60,44 @@ package
 		
 		// -*- Embedded textures and shit -*-
 		[Embed(source="/../bin/data/cubemap.png", mimeType="application/octet-stream")]
-		private var CubemapTextureBytes:Class;
+		private var CubemapTexture:Class;
+		private var _cubemapTexture:Texture3D;
 		[Embed(source = "../bin/data/normals_2.JPG", mimeType = "application/octet-stream")]
 		private var NormalTexture1:Class;
+		private var _normalTexture1:Texture3D;
+		
+		// -*- Color -*-
+		private var _baseColor:Vector3D = new Vector3D(0.21, 0.32, 0.55); // Sea blue
+		private var _ambient:Number = 0.0;
+		
+		// -*- Normal texture -*-
+		private var _normalScale:Number = 4.0;
+		private var _normalSpeed:Number = 0.05;
+		private var _normalAlpha:Number = 0.1;
+		
+		// -*- Foam -*-
+		private var _foamMinHeight:Number = 3.0;
+		private var _foamMaxHeight:Number = 5.1;
+		private var _foamColor:Vector3D = new Vector3D(0.2, 0.2, 0.2);
+		
+		// -*- Sunlight -*-
+		private var _sunStrength:Number = 1.2;
+		private var _sunShine:Number = 75.0;
+		private var _sunColor:Vector3D = new Vector3D(1.2, 0.4, 0.1);
+		private var _sunPow:Number = 0.45454545454545454545454545454545;
+		private var _sunEnvMod:Number = 0.40;
+		private var _sunDirection:Vector3D = new Vector3D(0.529813, 0.662266, 0.529813);
+		
+		// -*- Wave color -*-
+		private var _waveColorMod:Number = 0.2;
+		private var _waveColorPow:Number = 4.0;
+		
+		// -*- Specular -*-
+		private var _specularPow:Number = 1.0;
+		private var _specularMod:Number = 0.26;
+		
+		// -*- Scene reflection -*-
+		private var _sceneReflectMod:Number = 0.25;
 		
 		public function Water( scene:Scene3D, gridSize:uint, planeSize:uint, height:Number )
 		{
@@ -71,9 +106,11 @@ package
 			this._planeSize = planeSize;
 			this._waterHeight = height;
 			
+			initTextures();
 			initShaders();
 			initRenderables();
 			initSimulation();
+			updateShaderParameters();
 			updateShaderConstants();
 			
 			displacePoint01(0.5, 0.5, 0.1, 10.0);
@@ -89,22 +126,17 @@ package
 			_shader.params.ReflectionTex.value = value;
 		}
 		
+		private function initTextures():void
+		{
+			_cubemapTexture = new Texture3D(new CubemapTexture() as ByteArray, false, Texture3D.FORMAT_RGBA, Texture3D.TYPE_CUBE);
+			_cubemapTexture.filterMode = Texture3D.FILTER_LINEAR;
+			
+			_normalTexture1 = new Texture3D(new NormalTexture1() as ByteArray);
+		}
+		
 		private function initShaders():void
 		{
-			//var cubemapTexture:Texture3D = new Texture3D("data/cubemap.png", false, Texture3D.FORMAT_RGBA, Texture3D.TYPE_CUBE);
-			var cubemapTexture:Texture3D = new Texture3D(new CubemapTextureBytes() as ByteArray, false, Texture3D.FORMAT_RGBA, Texture3D.TYPE_CUBE);
-			cubemapTexture.filterMode = Texture3D.FILTER_LINEAR;
 			_shader = new FLSLMaterial("water_shader", new _shaderClass() as ByteArray);
-			_shader.transparent = true;
-			_shader.params.CubeTex.value = cubemapTexture;
-			////_shader.params.BaseColor.value[0] = 0.39; _shader.params.BaseColor.value[1] = 0.58; _shader.params.BaseColor.value[2] = 0.93; // Cornflower blue
-			_shader.params.BaseColor.value[0] = 0.21; _shader.params.BaseColor.value[1] = 0.32; _shader.params.BaseColor.value[2] = 0.55; // Sea blue
-			//_shader.params.BaseColor.value[0] = 0.03; _shader.params.BaseColor.value[1] = 0.52; _shader.params.BaseColor.value[2] = 0.74; // Coolwater blue
-			//_shader.params.BaseColor.value[0] = 1.0; _shader.params.BaseColor.value[1] = 0.0; _shader.params.BaseColor.value[2] = 1.0; // HOT pink ;)
-			//_shader.params.BaseColor.value[0] = 0.54; _shader.params.BaseColor.value[1] = 0.03; _shader.params.BaseColor.value[2] = 0.03; // Blood red
-			//_shader.params.BaseColor.value[0] = 0.84; _shader.params.BaseColor.value[1] = 0.87; _shader.params.BaseColor.value[2] = 0.14; // Slime green
-			_shader.params.Ambient.value[0] = 0.0;
-			_shader.params.NormalTex1.value = new Texture3D(new NormalTexture1() as ByteArray);
 			_shader.build();
 		}
 		
@@ -174,6 +206,58 @@ package
 			_dropShader.data.source.height = _gridSize;
 		}
 		
+		private function updateShaderParameters():void
+		{
+			// Color
+			_shader.params.BaseColor.value[0] = _baseColor.x;
+			_shader.params.BaseColor.value[1] = _baseColor.y;
+			_shader.params.BaseColor.value[2] = _baseColor.z;
+			_shader.params.Ambient.value[0] = _ambient;
+			
+			// Normal texture
+			_shader.params.NormalScale.value[0] = _normalScale;
+			_shader.params.NormalSpeed.value[0] = _normalSpeed;
+			_shader.params.NormalAlpha.value[0] = _normalAlpha;
+			
+			// Foam
+			_shader.params.FoamMinHeight.value[0] = _foamMinHeight;
+			_shader.params.FoamMaxHeight.value[0] = _foamMaxHeight;
+			_shader.params.FoamColor.value[0] = _foamColor.x;
+			_shader.params.FoamColor.value[1] = _foamColor.y;
+			_shader.params.FoamColor.value[2] = _foamColor.z;
+			
+			// Sunlight
+			_shader.params.SunStrength.value[0] = _sunStrength;
+			_shader.params.SunShine.value[0] = _sunShine;
+			_shader.params.SunColor.value[0] = _sunColor.x;
+			_shader.params.SunColor.value[1] = _sunColor.y;
+			_shader.params.SunColor.value[2] = _sunColor.z;
+			_shader.params.SunPow.value[0] = _sunPow;
+			_shader.params.SunEnvMod.value[0] = _sunEnvMod;
+			_shader.params.L.value[0] = _sunDirection.x;
+			_shader.params.L.value[1] = _sunDirection.y;
+			_shader.params.L.value[2] = _sunDirection.z;
+			
+			// Wave color
+			_shader.params.WaveColorMod.value[0] = _waveColorMod;
+			_shader.params.WaveColorPow.value[0] = _waveColorPow;
+			
+			// Specular
+			_shader.params.SpecularPow.value[0] = _specularPow;
+			_shader.params.SpecularMod.value[0] = _specularMod;
+			
+			// Scene reflection
+			_shader.params.SceneReflectMod.value[0] = _sceneReflectMod;
+			
+			// Cubemap texture
+			_shader.params.CubeTex.value = _cubemapTexture;
+			
+			// Normal texture
+			_shader.params.NormalTex1.value = _normalTexture1;
+			
+			_shader.rebuild();
+		}
+		
 		public function update():void
 		{
 			_elapsedTime += _scene.updateTime;
@@ -186,7 +270,6 @@ package
 		public function draw():void
 		{
 			_plane.draw();
-			
 		}
 		
 		public function displacePoint01( x:Number, y:Number, radius:Number=0.03, strength:Number=0.01 ):void
