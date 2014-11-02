@@ -46,7 +46,7 @@ package
 		
 		// -*- Box settings -*-
 		private var _boxYOffset:int = 5;
-		private var _boxHeight:int = 50;
+		private var _boxHeight:int = 20;
 		private var _boxThickness:int = 10;
 		
 		// -*- Box! :D -*-
@@ -92,7 +92,7 @@ package
 			
 			configureBox();
 			
-			_water = new Water(_scene, _gridSize, _planeSize);
+			_water = new Water(_scene, _gridSize, _planeSize, _boxHeight - 15);
 			_water.MirrorTexture = _reflectionTex;
 			_water.WaterPlane.useHandCursor = true;
 			_water.WaterPlane.mouseEnabled = true;
@@ -221,7 +221,7 @@ package
 			_scene.addChild(front);
 			
 			ground = new Box("ground", _planeSize, _boxThickness, _planeSize, 1, box_mat);
-			ground.setPosition(0, -_boxHeight + _boxThickness, 0);
+			ground.setPosition(0, v_offset * 2 - _boxThickness, 0);
 			_scene.addChild(ground);
 			
 			var random_mat:Shader3D = new Shader3D("random_mat");

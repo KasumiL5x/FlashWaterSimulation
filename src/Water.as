@@ -56,6 +56,7 @@ package
 		// -*- Renderables -*-
 		private var _plane:Plane;    /**< Final rendererd geometry. */
 		private var _planeSize:uint; /**< Size of the plane geometry. */
+		private var _waterHeight:Number; /**< Offset for the caustics plane. */
 		
 		// -*- Embedded textures and shit -*-
 		[Embed(source="/../bin/data/cubemap.png", mimeType="application/octet-stream")]
@@ -63,11 +64,12 @@ package
 		[Embed(source = "../bin/data/normals_2.JPG", mimeType = "application/octet-stream")]
 		private var NormalTexture1:Class;
 		
-		public function Water( scene:Scene3D, gridSize:uint, planeSize:uint )
+		public function Water( scene:Scene3D, gridSize:uint, planeSize:uint, height:Number )
 		{
 			this._scene = scene;
 			this._gridSize = gridSize;
 			this._planeSize = planeSize;
+			this._waterHeight = height;
 			
 			initShaders();
 			initRenderables();
@@ -95,18 +97,14 @@ package
 			_shader = new FLSLMaterial("water_shader", new _shaderClass() as ByteArray);
 			_shader.transparent = true;
 			_shader.params.CubeTex.value = cubemapTexture;
-			//
 			////_shader.params.BaseColor.value[0] = 0.39; _shader.params.BaseColor.value[1] = 0.58; _shader.params.BaseColor.value[2] = 0.93; // Cornflower blue
 			_shader.params.BaseColor.value[0] = 0.21; _shader.params.BaseColor.value[1] = 0.32; _shader.params.BaseColor.value[2] = 0.55; // Sea blue
 			//_shader.params.BaseColor.value[0] = 0.03; _shader.params.BaseColor.value[1] = 0.52; _shader.params.BaseColor.value[2] = 0.74; // Coolwater blue
 			//_shader.params.BaseColor.value[0] = 1.0; _shader.params.BaseColor.value[1] = 0.0; _shader.params.BaseColor.value[2] = 1.0; // HOT pink ;)
 			//_shader.params.BaseColor.value[0] = 0.54; _shader.params.BaseColor.value[1] = 0.03; _shader.params.BaseColor.value[2] = 0.03; // Blood red
 			//_shader.params.BaseColor.value[0] = 0.84; _shader.params.BaseColor.value[1] = 0.87; _shader.params.BaseColor.value[2] = 0.14; // Slime green
-			//
 			_shader.params.Ambient.value[0] = 0.0;
-			//
 			_shader.params.NormalTex1.value = new Texture3D(new NormalTexture1() as ByteArray);
-			//
 			_shader.build();
 		}
 		
@@ -188,6 +186,7 @@ package
 		public function draw():void
 		{
 			_plane.draw();
+			
 		}
 		
 		public function displacePoint01( x:Number, y:Number, radius:Number=0.03, strength:Number=0.01 ):void
