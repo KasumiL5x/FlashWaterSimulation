@@ -73,7 +73,7 @@ package
 		// -*- Normal texture -*-
 		private var _normalScale:Number = 4.0;
 		private var _normalSpeed:Number = 0.05;
-		private var _normalAlpha:Number = 0.1;
+		private var _normalAlpha:Number = 0.075;
 		
 		// -*- Foam -*-
 		private var _foamMinHeight:Number = 3.0;

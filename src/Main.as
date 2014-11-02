@@ -56,6 +56,7 @@ package
 		private var back:Box;
 		private var ground:Box;
 		private var _randomBox:Box;
+		private var _randomBox2:Box;
 		private var _randomBoxHeight:Number = 10.0;
 		
 		// -*- Skybox texture -*-
@@ -144,6 +145,10 @@ package
 			
 			_randomBox.y = 10.0 + (Math.sin((getTimer() * 0.001) * 2.0) * _randomBoxHeight) * 0.5 + 0.5;
 			_randomBox.transform.appendRotation(2.0, new Vector3D(0.0, 1.0, 0.0));
+			
+			_randomBox2.y = 10.0 + (Math.cos((getTimer() * 0.001) * 2.0) * _randomBoxHeight) * 0.5 + 0.5;
+			_randomBox2.transform.appendRotation(2.0, new Vector3D(0.0, 1.0, 0.0), _randomBox2.transform.position);
+			_randomBox2.transform.appendRotation(2.0, new Vector3D(0.0, 1.0, 0.0));
 		}
 		
 		private function onPreRender( e:Event ):void
@@ -175,6 +180,9 @@ package
 			_randomBox.y = -_randomBox.y;
 			_randomBox.draw();
 			_randomBox.y = -_randomBox.y;
+			_randomBox2.y = -_randomBox2.y;
+			_randomBox2.draw();
+			_randomBox2.y = -_randomBox2.y;
 			// Flip the camera back so we don't do the normal rendering upside down!
 			_scene.camera.transform.appendScale(1.0, -1.0, 1.0);
 			// Restore the backbuffer as the render target.
@@ -230,6 +238,13 @@ package
 			_randomBox = new Box("random_box", 10, 10, 10, 1, random_mat);
 			_randomBox.setPosition(0, 10, 0);
 			_scene.addChild(_randomBox);
+			
+			var random_mat_2:Shader3D = new Shader3D("random_mat_2");
+			random_mat_2.filters.push(new ColorFilter(0x00FF00, 1.0));
+			random_mat_2.build();
+			_randomBox2 = new Box("random_box_2", 10, 10, 10, 1, random_mat_2);
+			_randomBox2.setPosition( -25, 10, 0);
+			_scene.addChild(_randomBox2);
 		}
 	}
 }
