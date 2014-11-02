@@ -23,7 +23,7 @@ param float SunStrength = 1.2;
 param float SunShine = 75.0;
 param float3 SunColor = float3(1.2, 0.4, 0.1);
 param float SunPow = 0.45454545454545454545454545454545;
-param float SunEnvMod = 0.35;
+param float SunEnvMod = 0.40;
 
 // -*- wave color properties -*-
 param float WaveColorMod = 0.20;
@@ -45,11 +45,18 @@ param float3 L = normalize(float3(0.4, 0.5, 0.4));
 float4 vertexShader()
 {
 	float4 pos = position.xyzw;
+	// Offset position by simulation height.
 	pos.y += color0.x;
+	
+	// Store position for use in fragment shader.
 	interp_pos = pos.xyz;
+	
 	pos *= worldViewProj;
+	
+	// Store projected position for scene reflections.
 	projected_pos = pos;
 	
+	// Calculate the normal based on the XZ.
 	float2 N_XZ = float2(color0.b, color0.a);
 	interp_nrm = normalize(float3(color0.b, sqrt(1.0 - dot(N_XZ, N_XZ)), color0.a));
 	
@@ -61,8 +68,8 @@ float4 fragmentShader()
 	// Normal from VS.
 	float3 N = interp_nrm;
 	// Sample normal texture for a look of idle movement.
-	N += (sampler2D(NormalTex1, iUV0 * 5.0 + time.xz * 0.05).xzy - 0.5) * 0.25;
-	N += (sampler2D(NormalTex1, iUV0 * 5.0 - time.xz * 0.05).xzy - 0.5) * 0.25;
+	N += (sampler2D(NormalTex1, iUV0 * 4.0 + time.xz * 0.05).xzy - 0.5) * 0.15;
+	N += (sampler2D(NormalTex1, iUV0 * 4.0 - time.zx * 0.05).xzy - 0.5) * 0.10;
 	N = normalize(N);
 	
 	// Specular highlights (from some paper I found online).
