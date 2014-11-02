@@ -185,6 +185,11 @@ package
 			updateShaderConstants();
 		}
 		
+		public function draw():void
+		{
+			_plane.draw();
+		}
+		
 		public function displacePoint01( x:Number, y:Number, radius:Number=0.03, strength:Number=0.01 ):void
 		{
 			// Clamp inputs.

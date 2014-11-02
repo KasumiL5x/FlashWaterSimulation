@@ -13,6 +13,11 @@ param TIME time;
 param float3 BaseColor = float3(1.0, 0.0, 0.0);
 param float Ambient = 0.2;
 
+// -*- Normal texture properties -*-
+param float NormalScale = 4.0;
+param float NormalSpeed = 0.05;
+param float NormalAlpha = 0.1;
+
 // -*- Foam properties -*-
 param float FoamMinHeight = 3.0;
 param float FoamMaxHeight = 5.1;
@@ -68,8 +73,8 @@ float4 fragmentShader()
 	// Normal from VS.
 	float3 N = interp_nrm;
 	// Sample normal texture for a look of idle movement.
-	N += (sampler2D(NormalTex1, iUV0 * 4.0 + time.xz * 0.05).xzy - 0.5) * 0.15;
-	N += (sampler2D(NormalTex1, iUV0 * 4.0 - time.zx * 0.05).xzy - 0.5) * 0.10;
+	N += (sampler2D(NormalTex1, iUV0 * NormalScale + time.xz * NormalSpeed).xzy - 0.5) * NormalAlpha;
+	N += (sampler2D(NormalTex1, iUV0 * NormalScale - time.zx * NormalSpeed).xzy - 0.5) * NormalAlpha;
 	N = normalize(N);
 	
 	// Specular highlights (from some paper I found online).

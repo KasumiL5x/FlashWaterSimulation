@@ -179,13 +179,12 @@ package
 			_scene.camera.transform.appendScale(1.0, -1.0, 1.0);
 			// Restore the backbuffer as the render target.
 			_scene.context.setRenderToBackBuffer();
-			
 		}
 		
 		private function onPostRender( e:Event ):void
 		{
 			// Draw water after everything else.
-			_water.WaterPlane.draw();
+			_water.draw();
 		}
 		
 		private function onRain( evt:TimerEvent ):void
