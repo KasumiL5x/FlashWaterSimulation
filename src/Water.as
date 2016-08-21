@@ -46,7 +46,6 @@ package
 		[Embed(source = "/../bin/data/water_drop.pbj", mimeType = "application/octet-stream")]
 		private var DropShader:Class;
 		private var _dropShader:Shader;
-		private var _elapsedTime:Number = 0.0;
 		
 		// -*- Materials -*-
 		[Embed(source = "/../bin/data/water.flsl.compiled", mimeType = "application/octet-stream")]
@@ -62,7 +61,7 @@ package
 		[Embed(source="/../bin/data/cubemap.png", mimeType="application/octet-stream")]
 		private var CubemapTexture:Class;
 		private var _cubemapTexture:Texture3D;
-		[Embed(source = "../bin/data/normals_2.JPG", mimeType = "application/octet-stream")]
+		[Embed(source = "../bin/data/normals.png", mimeType = "application/octet-stream")]
 		private var NormalTexture1:Class;
 		private var _normalTexture1:Texture3D;
 		
@@ -260,7 +259,6 @@ package
 		
 		public function update():void
 		{
-			_elapsedTime += _scene.updateTime;
 			runUpdateShader();
 			runNormalsShader();
 			updateBuffers();
